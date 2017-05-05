@@ -28,17 +28,20 @@ func (m *relatedContentMapper) mapRelatedContent() ([]byte, string, error) {
 		return nil, "", err
 	}
 
-	var relatedItems []Item
+	collectionContainerUUID := NewNameUUIDFromBytes([]byte(videoUUID)).String()
+
+	var cc ContentCollection
 	if !m.isDeleteEvent() {
 		relatedItemsArray, err := getObjectsArrayField(relatedField, m.unmarshalled, videoUUID, m)
 		if err != nil {
 			return nil, videoUUID, err
 		}
 
-		relatedItems = m.retrieveRelatedItems(relatedItemsArray, videoUUID)
+		relatedItems := m.retrieveRelatedItems(relatedItemsArray, videoUUID)
+		cc = m.newContentCollection(collectionContainerUUID, relatedItems)
 	}
 
-	mc := m.buildMappedContent(videoUUID, relatedItems)
+	mc := m.newMappedContent(collectionContainerUUID, cc)
 
 	marshalledPubEvent, err := json.Marshal(mc)
 	if err != nil {
@@ -62,21 +65,22 @@ func (m *relatedContentMapper) retrieveRelatedItems(relatedItemsArray []map[stri
 	return result
 }
 
-func (m *relatedContentMapper) buildMappedContent(videoUUID string, items []Item) MappedContent {
-	collectionContainerUUID := NewNameUUIDFromBytes([]byte(videoUUID)).String()
-	cc := ContentCollection{
-		UUID:             collectionContainerUUID,
+func (m *relatedContentMapper) newMappedContent(ccUUID string, cc ContentCollection) MappedContent {
+	return MappedContent{
+		Payload:      cc,
+		ContentURI:   contentURIPrefix + ccUUID,
+		LastModified: m.lastModified,
+		UUID:         ccUUID,
+	}
+}
+
+func (m *relatedContentMapper) newContentCollection(ccUUID string, items []Item) ContentCollection {
+	return ContentCollection{
+		UUID:             ccUUID,
 		Items:            items,
 		PublishReference: m.tid,
 		LastModified:     m.lastModified,
 		CollectionType:   collectionType,
-	}
-
-	return MappedContent{
-		Payload:      cc,
-		ContentURI:   contentURIPrefix + collectionContainerUUID,
-		LastModified: m.lastModified,
-		UUID:         collectionContainerUUID,
 	}
 }
 
