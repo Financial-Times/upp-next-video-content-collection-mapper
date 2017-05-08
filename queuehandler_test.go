@@ -12,7 +12,7 @@ import (
 
 const videoUUID = "e2290d14-7e80-4db8-a715-949da4de9a07"
 
-var msgDate = time.Now().Format(dateFormat)
+var lastModified = time.Now().Format(dateFormat)
 
 func init() {
 	logger = newAppLogger("test")
@@ -37,7 +37,7 @@ func TestQueueConsume(t *testing.T) {
 			nextVideoOrigin,
 			"1234",
 			true,
-			newStringMappedContent(t, "c4cde316-128c-11e7-80f4-13e067d5072c", "1234"),
+			newStringMappedContent(t, "c4cde316-128c-11e7-80f4-13e067d5072c", "1234", lastModified),
 		},
 		{
 			"next-video-input.json",
@@ -72,7 +72,7 @@ func TestQueueConsume(t *testing.T) {
 			nextVideoOrigin,
 			"1234",
 			true,
-			newStringMappedContent(t, "", "1234"),
+			newStringMappedContent(t, "", "1234", lastModified),
 		},
 	}
 
@@ -85,7 +85,7 @@ func TestQueueConsume(t *testing.T) {
 		}
 
 		msg := consumer.Message{
-			Headers: createHeaders(test.originSystem, test.tid),
+			Headers: createHeaders(test.originSystem, test.tid, lastModified),
 			Body:    string(getBytes(test.fileName, t)),
 		}
 		h.queueConsume(msg)
@@ -97,7 +97,7 @@ func TestQueueConsume(t *testing.T) {
 	}
 }
 
-func createHeaders(originSystem string, requestID string) map[string]string {
+func createHeaders(originSystem string, requestID string, msgDate string) map[string]string {
 	var result = make(map[string]string)
 	result["Origin-System-Id"] = originSystem
 	result["X-Request-Id"] = requestID
@@ -126,7 +126,7 @@ func getBytes(fileName string, t *testing.T) []byte {
 	return bytes
 }
 
-func newStringMappedContent(t *testing.T, itemUUID string, tid string) string {
+func newStringMappedContent(t *testing.T, itemUUID string, tid string, msgDate string) string {
 	ccUUID := NewNameUUIDFromBytes([]byte(videoUUID)).String()
 	var items []Item
 	if itemUUID != "" {
@@ -144,8 +144,8 @@ func newStringMappedContent(t *testing.T, itemUUID string, tid string) string {
 	mc := MappedContent{
 		Payload:      cc,
 		ContentURI:   contentURIPrefix + ccUUID,
-		UUID:         ccUUID,
 		LastModified: msgDate,
+		UUID:         ccUUID,
 	}
 
 	marshalledContent, err := json.Marshal(mc)
