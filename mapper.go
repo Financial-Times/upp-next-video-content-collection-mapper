@@ -38,7 +38,9 @@ func (m *relatedContentMapper) mapRelatedContent() ([]byte, string, error) {
 		}
 
 		relatedItems := m.retrieveRelatedItems(relatedItemsArray, videoUUID)
-		cc = m.newContentCollection(collectionContainerUUID, relatedItems)
+		if len(relatedItems) > 0 {
+			cc = m.newContentCollection(collectionContainerUUID, relatedItems)
+		}
 	}
 
 	mc := m.newMappedContent(collectionContainerUUID, cc)

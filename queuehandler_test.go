@@ -128,17 +128,16 @@ func getBytes(fileName string, t *testing.T) []byte {
 
 func newStringMappedContent(t *testing.T, itemUUID string, tid string, msgDate string) string {
 	ccUUID := NewNameUUIDFromBytes([]byte(videoUUID)).String()
-	var items []Item
+	var cc ContentCollection
 	if itemUUID != "" {
-		items = []Item{{itemUUID}}
-	}
-
-	cc := ContentCollection{
-		UUID:             ccUUID,
-		Items:            items,
-		PublishReference: tid,
-		LastModified:     msgDate,
-		CollectionType:   collectionType,
+		items := []Item{{itemUUID}}
+		cc = ContentCollection{
+			UUID:             ccUUID,
+			Items:            items,
+			PublishReference: tid,
+			LastModified:     msgDate,
+			CollectionType:   collectionType,
+		}
 	}
 
 	mc := MappedContent{
