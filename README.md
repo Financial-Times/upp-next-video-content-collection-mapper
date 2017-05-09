@@ -58,6 +58,7 @@ There are defaults values used for properties so when deployed locally it can be
 #### /map
 
 Example:
+
         curl -X POST http://localhost:8080/map -H "Content-Type: application/json" -H "X-Request-Id: tid_12345" -H "X-Origin-System-Id: next-video-editor" -d @body.json
 
 
@@ -178,6 +179,7 @@ body.json:
 ```
 
 Response 200
+
 Body:
 ```
 {
@@ -195,6 +197,7 @@ Body:
 ```
 
 Response 400
+
 If the mapping couldn't be performed because of invalid provided content.
 
 ## Healthchecks
