@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"github.com/Financial-Times/message-queue-go-producer/producer"
 	"github.com/Financial-Times/message-queue-gonsumer/consumer"
 	"github.com/stretchr/testify/assert"
@@ -9,8 +8,6 @@ import (
 	"testing"
 	"time"
 )
-
-const videoUUID = "e2290d14-7e80-4db8-a715-949da4de9a07"
 
 var lastModified = time.Now().Format(dateFormat)
 
@@ -124,33 +121,4 @@ func getBytes(fileName string, t *testing.T) []byte {
 	}
 
 	return bytes
-}
-
-func newStringMappedContent(t *testing.T, itemUUID string, tid string, msgDate string) string {
-	ccUUID := NewNameUUIDFromBytes([]byte(videoUUID)).String()
-	var cc ContentCollection
-	if itemUUID != "" {
-		items := []Item{{itemUUID}}
-		cc = ContentCollection{
-			UUID:             ccUUID,
-			Items:            items,
-			PublishReference: tid,
-			LastModified:     msgDate,
-			CollectionType:   collectionType,
-		}
-	}
-
-	mc := MappedContent{
-		Payload:      cc,
-		ContentURI:   contentURIPrefix + ccUUID,
-		LastModified: msgDate,
-		UUID:         ccUUID,
-	}
-
-	marshalledContent, err := json.Marshal(mc)
-	if err != nil {
-		assert.Fail(t, err.Error())
-	}
-	return string(marshalledContent)
-
 }
