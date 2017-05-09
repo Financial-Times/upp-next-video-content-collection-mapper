@@ -55,15 +55,14 @@ There are defaults values used for properties so when deployed locally it can be
 
 ### POST
 
-####/map
+#### /map
 
 Example:
-`
-curl -X POST http://localhost:8080/map -H "Content-Type: application/json" -H "X-Request-Id: tid_12345" -H "X-Origin-System-Id: next-video-editor" -d @body.json
-`
+        curl -X POST http://localhost:8080/map -H "Content-Type: application/json" -H "X-Request-Id: tid_12345" -H "X-Origin-System-Id: next-video-editor" -d @body.json
+
 
 body.json:
-`
+```
 {
 	"_id": "58d8d6cc789d4c000f6b0169",
 	"updatedAt": "2017-04-03T16:30:11.106Z",
@@ -176,11 +175,11 @@ body.json:
 	"type": "video",
 	"id": "ad543253-ad5e-471c-a006-ebb395323028"
 }
-`
+```
 
 Response 200
 Body:
-`
+```
 {
 	"payload": {
 		"uuid": "151d4420-6ce6-3964-ad64-916561612973",
@@ -193,7 +192,7 @@ Body:
 	"contentUri": "http://next-video-content-collection-mapper.svc.ft.com/content-collection/story-package/151d4420-6ce6-3964-ad64-916561612973",
 	"uuid": "151d4420-6ce6-3964-ad64-916561612973"
 }
-`
+```
 
 Response 400
 If the mapping couldn't be performed because of invalid provided content.
