@@ -44,7 +44,9 @@ There are defaults values used for properties so when deployed locally it can be
 
 3. Test:
 
-        curl http://localhost:8080/__next-video-content-collection-mapper/__health | jq
+`
+curl http://localhost:8080/__next-video-content-collection-mapper/__health | jq
+`
 
 ## Build and deployment
 
