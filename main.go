@@ -184,6 +184,7 @@ func consumeUntilSigterm(messageConsumer consumer.MessageConsumer, config consum
 
 func (sc serviceConfig) asMap() map[string]interface{} {
 	return map[string]interface{}{
+		"app-name":     sc.appName,
 		"service-name": sc.serviceName,
 		"service-port": sc.port,
 	}
