@@ -59,7 +59,9 @@ There are defaults values used for properties so when deployed locally it can be
 
 Example:
 
-        curl -X POST http://localhost:8080/map -H "Content-Type: application/json" -H "X-Request-Id: tid_12345" -H "X-Origin-System-Id: next-video-editor" -d @body.json
+`
+curl -X POST http://localhost:8080/map -H "Content-Type: application/json" -H "X-Request-Id: tid_12345" -H "X-Origin-System-Id: next-video-editor" -d @body.json
+`
 
 
 body.json:
