@@ -111,8 +111,7 @@ body.json:
 	"updatedBy": "seb.morton-clark",
 	"isPublished": false,
 	"related": [{
-		"id": "c4cde316-128c-11e7-80f4-13e067d5072c",
-		"title": "Stocks and dollar slide as ‘Trump trade’ fades"
+		"uuid": "c4cde316-128c-11e7-80f4-13e067d5072c",
 	}],
 	"annotations": [{
 		"id": "http://api.ft.com/things/059c58aa-53e6-306b-8642-e718c869ec09",
