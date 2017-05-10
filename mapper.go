@@ -9,7 +9,7 @@ const (
 	videoUUIDField     = "id"
 	relatedField       = "related"
 	deletedField       = "deleted"
-	relatedItemIDField = "id"
+	relatedItemIDField = "uuid"
 	collectionType     = "story-package"
 	contentURIPrefix   = "http://next-video-content-collection-mapper.svc.ft.com/content-collection/story-package/"
 )
