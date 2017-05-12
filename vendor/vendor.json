@@ -51,6 +51,14 @@
 			"versionExact": "0.1.0"
 		},
 		{
+			"checksumSHA1": "CphoWOjfAWc2hFo1e9SBuLaAnMU=",
+			"path": "github.com/Financial-Times/uuid-utils-go",
+			"revision": "6a93dec4ed9646eb79596fcac3fda379974d9d2f",
+			"revisionTime": "2017-05-12T09:08:27Z",
+			"version": "1.0.0",
+			"versionExact": "1.0.0"
+		},
+		{
 			"checksumSHA1": "NSJhlFlJwKJ90vd+jpwiXY/VYh0=",
 			"path": "github.com/Sirupsen/logrus",
 			"revision": "10f801ebc38b33738c9d17d50860f484a0988ff5",
@@ -105,6 +113,12 @@
 			"path": "github.com/stretchr/testify/assert",
 			"revision": "4d4bfba8f1d1027c4fdbe371823030df51419987",
 			"revisionTime": "2017-01-30T11:31:45Z"
+		},
+		{
+			"checksumSHA1": "hRpSBofTFAM50mVLe4sID2rP2v8=",
+			"path": "github.com/willf/bitset",
+			"revision": "988f4f24992fc745de53c42df0da6581e42a6686",
+			"revisionTime": "2017-05-05T19:16:46Z"
 		},
 		{
 			"checksumSHA1": "ArDa4bMPKzhiS1I7iioemBwZ6tE=",

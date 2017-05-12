@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	uuidUtils "github.com/Financial-Times/uuid-utils-go"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"testing"
@@ -237,7 +238,9 @@ func newRelatedItem(id interface{}) map[string]interface{} {
 }
 
 func newStringMappedContent(t *testing.T, itemUUID string, tid string, msgDate string) string {
-	ccUUID := NewNameUUIDFromBytes([]byte(testVideoUUID)).String()
+	uuid := uuidUtils.NewV5UUIDFrom(testVideoUUID)
+	ccUUID := uuid.String()
+
 	var cc ContentCollection
 	if itemUUID != "" {
 		items := []Item{{itemUUID}}

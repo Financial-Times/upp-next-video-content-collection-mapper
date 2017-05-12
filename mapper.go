@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	uuidUtils "github.com/Financial-Times/uuid-utils-go"
 )
 
 const (
@@ -28,7 +29,8 @@ func (m *relatedContentMapper) mapRelatedContent() ([]byte, string, error) {
 		return nil, "", err
 	}
 
-	collectionContainerUUID := NewNameUUIDFromBytes([]byte(videoUUID)).String()
+	uuid := uuidUtils.NewV5UUIDFrom(videoUUID)
+	collectionContainerUUID := uuid.String()
 
 	var cc ContentCollection
 	if !m.isDeleteEvent() {
