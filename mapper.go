@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	uuidUtils "github.com/Financial-Times/uuid-utils-go"
-	"github.com/pkg/errors"
+	"errors"
 )
 
 const (
