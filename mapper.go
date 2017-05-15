@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	uuidUtils "github.com/Financial-Times/uuid-utils-go"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -13,6 +14,7 @@ const (
 	relatedItemIDField = "uuid"
 	collectionType     = "story-package"
 	contentURIPrefix   = "http://next-video-content-collection-mapper.svc.ft.com/content-collection/story-package/"
+	uuidGenerationSalt = "storypackage"
 )
 
 type relatedContentMapper struct {
@@ -29,8 +31,11 @@ func (m *relatedContentMapper) mapRelatedContent() ([]byte, string, error) {
 		return nil, "", err
 	}
 
-	uuid := uuidUtils.NewV5UUIDFrom(videoUUID)
-	collectionContainerUUID := uuid.String()
+	contentCollectionUUID, err := generateContentCollectionUUID(videoUUID)
+	if err != nil {
+		logger.videoEvent(m.tid, videoUUID, err.Error())
+		return nil, "", errors.New("Error generating story package UUID")
+	}
 
 	var cc ContentCollection
 	if !m.isDeleteEvent() {
@@ -41,11 +46,11 @@ func (m *relatedContentMapper) mapRelatedContent() ([]byte, string, error) {
 
 		relatedItems := m.retrieveRelatedItems(relatedItemsArray, videoUUID)
 		if len(relatedItems) > 0 {
-			cc = m.newContentCollection(collectionContainerUUID, relatedItems)
+			cc = m.newContentCollection(contentCollectionUUID, relatedItems)
 		}
 	}
 
-	mc := m.newMappedContent(collectionContainerUUID, cc)
+	mc := m.newMappedContent(contentCollectionUUID, cc)
 
 	marshalledPubEvent, err := json.Marshal(mc)
 	if err != nil {
@@ -139,4 +144,18 @@ func (m *relatedContentMapper) isDeleteEvent() bool {
 		return true
 	}
 	return false
+}
+
+func generateContentCollectionUUID(videoUUID string) (string, error) {
+	uuid, err := uuidUtils.NewUUIDFromString(videoUUID)
+	if err != nil {
+		return "", err
+	}
+
+	uuidDeriver := uuidUtils.NewUUIDDeriverWith(uuidGenerationSalt)
+	contentCollectionUUID, err := uuidDeriver.From(uuid)
+	if err != nil {
+		return "", err
+	}
+	return contentCollectionUUID.String(), nil
 }

@@ -2,13 +2,15 @@ package main
 
 import (
 	"encoding/json"
-	uuidUtils "github.com/Financial-Times/uuid-utils-go"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"testing"
 )
 
-const testVideoUUID = "e2290d14-7e80-4db8-a715-949da4de9a07"
+const (
+	testVideoUUID             = "e2290d14-7e80-4db8-a715-949da4de9a07"
+	testContentCollectionUUID = "e2290d14-7e80-4db8-19d1-ea8e75cf09e8"
+)
 
 var testMap = make(map[string]interface{})
 
@@ -238,14 +240,11 @@ func newRelatedItem(id interface{}) map[string]interface{} {
 }
 
 func newStringMappedContent(t *testing.T, itemUUID string, tid string, msgDate string) string {
-	uuid := uuidUtils.NewV5UUIDFrom(testVideoUUID)
-	ccUUID := uuid.String()
-
 	var cc ContentCollection
 	if itemUUID != "" {
 		items := []Item{{itemUUID}}
 		cc = ContentCollection{
-			UUID:             ccUUID,
+			UUID:             testContentCollectionUUID,
 			Items:            items,
 			PublishReference: tid,
 			LastModified:     msgDate,
@@ -255,9 +254,9 @@ func newStringMappedContent(t *testing.T, itemUUID string, tid string, msgDate s
 
 	mc := MappedContent{
 		Payload:      cc,
-		ContentURI:   contentURIPrefix + ccUUID,
+		ContentURI:   contentURIPrefix + testContentCollectionUUID,
 		LastModified: msgDate,
-		UUID:         ccUUID,
+		UUID:         testContentCollectionUUID,
 	}
 
 	marshalledContent, err := json.Marshal(mc)
