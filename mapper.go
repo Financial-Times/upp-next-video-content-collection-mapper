@@ -2,9 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	uuidUtils "github.com/Financial-Times/uuid-utils-go"
 	"errors"
+	"fmt"
+
+	uuidUtils "github.com/Financial-Times/uuid-utils-go"
 )
 
 const (

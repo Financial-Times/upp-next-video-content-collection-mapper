@@ -1,19 +1,19 @@
 package main
 
 import (
-	health "github.com/Financial-Times/go-fthealth/v1_1"
-	"github.com/Financial-Times/message-queue-go-producer/producer"
-	"github.com/Financial-Times/message-queue-gonsumer/consumer"
-	status "github.com/Financial-Times/service-status-go/httphandlers"
-	log "github.com/Sirupsen/logrus"
-	"github.com/gorilla/handlers"
-	"github.com/jawher/mow.cli"
 	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/Financial-Times/message-queue-go-producer/producer"
+	"github.com/Financial-Times/message-queue-gonsumer/consumer"
+	status "github.com/Financial-Times/service-status-go/httphandlers"
+	log "github.com/Sirupsen/logrus"
+	"github.com/gorilla/handlers"
+	"github.com/jawher/mow.cli"
 )
 
 const serviceDescription = "Get the related content references from the Next video content, creates a story package holding those references and puts a message with them on kafka queue for further processing and ingestion on Neo4j."
@@ -54,6 +54,12 @@ func main() {
 		Value:  "8080",
 		Desc:   "Port to listen on",
 		EnvVar: "APP_PORT",
+	})
+	panicGuide := app.String(cli.StringOpt{
+		Name:   "panic-guide",
+		Value:  "https://dewey.ft.com/upp-next-video-cc-mapper.html",
+		Desc:   "Path to panic guide",
+		EnvVar: "PANIC_GUIDE",
 	})
 	addresses := app.Strings(cli.StringsOpt{
 		Name:   "queue-addresses",
@@ -122,17 +128,10 @@ func main() {
 			Queue: *writeQueue,
 		}
 
-		hc := healthConfig{
-			appSystemCode: *appSystemCode,
-			appName:       *appName,
-			port:          *port,
-			httpCl:        httpCl,
-			consumerConf:  consumerConfig,
-			producerConf:  producerConfig,
-		}
+		hc := newHealthCheck(&producerConfig, &consumerConfig, *appName, *appSystemCode, *panicGuide)
 
 		go func() {
-			serveAdminEndpoints(*appSystemCode, sc, sh, hc)
+			serveAdminEndpoints(sc, sh, hc)
 		}()
 
 		qh := queueHandler{sc: sc, httpCl: httpCl, consumerConfig: consumerConfig, producerConfig: producerConfig}
@@ -147,16 +146,12 @@ func main() {
 	}
 }
 
-func serveAdminEndpoints(appSystemCode string, sc serviceConfig, sh serviceHandler, hc healthConfig) {
-
+func serveAdminEndpoints(sc serviceConfig, sh serviceHandler, hc *HealthCheck) {
 	serveMux := http.NewServeMux()
 
 	serveMux.Handle("/map", handlers.MethodHandler{"POST": http.HandlerFunc(sh.mapRequest)})
-
-	healthService := newHealthService(&hc)
-	h := health.HealthCheck{SystemCode: appSystemCode, Name: sc.appName, Description: serviceDescription, Checks: healthService.checks}
-	serveMux.HandleFunc(healthPath, health.Handler(h))
-	serveMux.HandleFunc(status.GTGPath, status.NewGoodToGoHandler(healthService.gtgCheck))
+	serveMux.HandleFunc("/__health", hc.Health())
+	serveMux.HandleFunc(status.GTGPath, status.NewGoodToGoHandler(hc.GTG))
 	serveMux.HandleFunc(status.BuildInfoPath, status.BuildInfoHandler)
 
 	logger.serviceStartedEvent(sc.asMap())
