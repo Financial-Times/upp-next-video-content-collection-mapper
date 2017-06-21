@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -18,14 +19,18 @@ func initializeHealthCheck(isProducerConnectionHealthy bool, isConsumerConnectio
 }
 
 func TestNewHealthCheck(t *testing.T) {
-	c := &consumer.QueueConfig{}
-	p := &producer.MessageProducerConfig{}
-	hc := newHealthCheck(p, c, "appName", "systemCode", "panicGuide")
+	hc := NewHealthCheck(
+		producer.NewMessageProducer(producer.MessageProducerConfig{}),
+		consumer.NewConsumer(consumer.QueueConfig{}, func(m consumer.Message) {}, http.DefaultClient),
+		"appName",
+		"appSystemCode",
+		"panicGuide",
+	)
 
 	assert.NotNil(t, hc.consumer)
 	assert.NotNil(t, hc.producer)
 	assert.Equal(t, "appName", hc.appName)
-	assert.Equal(t, "systemCode", hc.appSystemCode)
+	assert.Equal(t, "appSystemCode", hc.appSystemCode)
 	assert.Equal(t, "panicGuide", hc.panicGuide)
 }
 

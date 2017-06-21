@@ -128,14 +128,14 @@ func main() {
 			Queue: *writeQueue,
 		}
 
-		hc := newHealthCheck(&producerConfig, &consumerConfig, *appName, *appSystemCode, *panicGuide)
+		qh := queueHandler{sc: sc, httpCl: httpCl, consumerConfig: consumerConfig, producerConfig: producerConfig}
+		qh.init()
+
+		hc := NewHealthCheck(qh.messageProducer, qh.messageConsumer, *appName, *appSystemCode, *panicGuide)
 
 		go func() {
 			serveAdminEndpoints(sc, sh, hc)
 		}()
-
-		qh := queueHandler{sc: sc, httpCl: httpCl, consumerConfig: consumerConfig, producerConfig: producerConfig}
-		qh.init()
 
 		consumeUntilSigterm(qh.messageConsumer, consumerConfig)
 	}

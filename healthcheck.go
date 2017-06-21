@@ -2,15 +2,12 @@ package main
 
 import (
 	"net/http"
-	"time"
 
 	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
 	"github.com/Financial-Times/message-queue-go-producer/producer"
 	"github.com/Financial-Times/message-queue-gonsumer/consumer"
 	"github.com/Financial-Times/service-status-go/gtg"
 )
-
-const requestTimeout = 4500
 
 type HealthCheck struct {
 	consumer      consumer.MessageConsumer
@@ -20,10 +17,7 @@ type HealthCheck struct {
 	panicGuide    string
 }
 
-func newHealthCheck(producerConf *producer.MessageProducerConfig, consumerConf *consumer.QueueConfig, appName, appSystemCode, panicGuide string) *HealthCheck {
-	httpClient := &http.Client{Timeout: requestTimeout * time.Millisecond}
-	p := producer.NewMessageProducerWithHTTPClient(*producerConf, httpClient)
-	c := consumer.NewConsumer(*consumerConf, func(m consumer.Message) {}, httpClient)
+func NewHealthCheck(p producer.MessageProducer, c consumer.MessageConsumer, appName, appSystemCode, panicGuide string) *HealthCheck {
 	return &HealthCheck{
 		consumer:      c,
 		producer:      p,
