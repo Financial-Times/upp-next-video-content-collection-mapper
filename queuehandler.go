@@ -13,7 +13,7 @@ import (
 
 const (
 	nextVideoOrigin  = "http://cmdb.ft.com/systems/next-video-editor"
-	dateFormat       = "2006-01-02T03:04:05.000Z0700"
+	dateFormat       = "2006-01-02T15:04:05.000Z0700"
 	generatedMsgType = "cms-content-published"
 )
 
