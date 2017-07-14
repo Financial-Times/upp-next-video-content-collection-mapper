@@ -1,134 +1,145 @@
 package main
 
 import (
-	"github.com/Financial-Times/message-queue-go-producer/producer"
-	"github.com/Financial-Times/message-queue-gonsumer/consumer"
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
-	"github.com/stretchr/testify/assert"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/Financial-Times/message-queue-go-producer/producer"
+	"github.com/Financial-Times/message-queue-gonsumer/consumer"
+	"github.com/stretchr/testify/assert"
 )
 
-const (
-	statusOK int = 1 + iota
-	statusNA
-)
-
-var queueServerMock *httptest.Server
-
-func init() {
-	logger = newAppLogger("test")
-}
-
-func TestCheckMessageQueueAvailability(t *testing.T) {
-	assert := assert.New(t)
-
-	startQueueServerMock(statusOK)
-	defer queueServerMock.Close()
-
-	hc := healthConfig{
-		httpCl:       &http.Client{},
-		consumerConf: newConsumerConfig(queueServerMock.URL),
-		producerConf: newProducerConfig(queueServerMock.URL),
-	}
-
-	hs := newHealthService(&hc)
-
-	result, err := hs.checkAggregateMessageQueueProxiesReachable()
-	assert.Nil(err, "Error not expected.")
-	assert.Equal("Ok", result, "Message queue availability status is wrong")
-}
-
-func TestCheckMessageQueueNonAvailability(t *testing.T) {
-	assert := assert.New(t)
-
-	startQueueServerMock(statusNA)
-	defer queueServerMock.Close()
-
-	hc := healthConfig{
-		httpCl:       &http.Client{},
-		consumerConf: newConsumerConfig(queueServerMock.URL),
-		producerConf: newProducerConfig(queueServerMock.URL),
-	}
-
-	hs := newHealthService(&hc)
-
-	_, err := hs.checkAggregateMessageQueueProxiesReachable()
-	assert.Equal(true, err != nil, "Error was expected.")
-}
-
-func TestCheckMessageQueueWrongQueueURL(t *testing.T) {
-	assert := assert.New(t)
-
-	startQueueServerMock(statusOK)
-	defer queueServerMock.Close()
-
-	tests := []struct {
-		consumerConfig consumer.QueueConfig
-		producerConfig producer.MessageProducerConfig
-	}{
-		{
-			newConsumerConfig("wrong url"),
-			newProducerConfig(queueServerMock.URL),
-		},
-		{
-			newConsumerConfig(queueServerMock.URL),
-			newProducerConfig("wrong url"),
-		},
-	}
-
-	for _, test := range tests {
-		hc := healthConfig{
-			httpCl:       &http.Client{},
-			consumerConf: test.consumerConfig,
-			producerConf: test.producerConfig,
-		}
-
-		hs := newHealthService(&hc)
-
-		_, err := hs.checkAggregateMessageQueueProxiesReachable()
-		assert.Equal(true, err != nil, "Error was expected for input consumer [%v], producer [%v]", test.consumerConfig, test.producerConfig)
+func initializeHealthCheck(isProducerConnectionHealthy bool, isConsumerConnectionHealthy bool) *HealthCheck {
+	return &HealthCheck{
+		consumer: &mockConsumerInstance{isConnectionHealthy: isConsumerConnectionHealthy},
+		producer: &mockProducerInstance{isConnectionHealthy: isProducerConnectionHealthy},
 	}
 }
 
-func startQueueServerMock(status int) {
-	router := mux.NewRouter()
-	var getContent http.HandlerFunc
+func TestNewHealthCheck(t *testing.T) {
+	hc := NewHealthCheck(
+		producer.NewMessageProducer(producer.MessageProducerConfig{}),
+		consumer.NewConsumer(consumer.QueueConfig{}, func(m consumer.Message) {}, http.DefaultClient),
+		"appName",
+		"appSystemCode",
+		"panicGuide",
+	)
 
-	switch status {
-	case statusOK:
-		getContent = statusOKHandler
-	case statusNA:
-		getContent = internalErrorHandler
+	assert.NotNil(t, hc.consumer)
+	assert.NotNil(t, hc.producer)
+	assert.Equal(t, "appName", hc.appName)
+	assert.Equal(t, "appSystemCode", hc.appSystemCode)
+	assert.Equal(t, "panicGuide", hc.panicGuide)
+}
+
+func TestHappyHealthCheck(t *testing.T) {
+	hc := initializeHealthCheck(true, true)
+
+	req := httptest.NewRequest("GET", "http://example.com/__health", nil)
+	w := httptest.NewRecorder()
+
+	hc.Health()(w, req)
+
+	assert.Equal(t, 200, w.Code, "It should return HTTP 200 OK")
+	assert.Contains(t, w.Body.String(), `"name":"Read Message Queue Proxy Reachable","ok":true`, "Read message queue proxy healthcheck should be happy")
+	assert.Contains(t, w.Body.String(), `"name":"Write Message Queue Proxy Reachable","ok":true`, "Write message queue proxy healthcheck should be happy")
+}
+
+func TestHealthCheckWithUnhappyConsumer(t *testing.T) {
+	hc := initializeHealthCheck(true, false)
+
+	req := httptest.NewRequest("GET", "http://example.com/__health", nil)
+	w := httptest.NewRecorder()
+
+	hc.Health()(w, req)
+
+	assert.Equal(t, 200, w.Code, "It should return HTTP 200 OK")
+	assert.Contains(t, w.Body.String(), `"name":"Read Message Queue Proxy Reachable","ok":false`, "Read message queue proxy healthcheck should be unhappy")
+	assert.Contains(t, w.Body.String(), `"name":"Write Message Queue Proxy Reachable","ok":true`, "Write message queue proxy healthcheck should be happy")
+}
+
+func TestHealthCheckWithUnhappyProducer(t *testing.T) {
+	hc := initializeHealthCheck(false, true)
+
+	req := httptest.NewRequest("GET", "http://example.com/__health", nil)
+	w := httptest.NewRecorder()
+
+	hc.Health()(w, req)
+
+	assert.Equal(t, 200, w.Code, "It should return HTTP 200 OK")
+	assert.Contains(t, w.Body.String(), `"name":"Read Message Queue Proxy Reachable","ok":true`, "Read message queue proxy healthcheck should be happy")
+	assert.Contains(t, w.Body.String(), `"name":"Write Message Queue Proxy Reachable","ok":false`, "Write message queue proxy healthcheck should be unhappy")
+}
+
+func TestUnhappyHealthCheck(t *testing.T) {
+	hc := initializeHealthCheck(false, false)
+
+	req := httptest.NewRequest("GET", "http://example.com/__health", nil)
+	w := httptest.NewRecorder()
+
+	hc.Health()(w, req)
+
+	assert.Equal(t, 200, w.Code, "It should return HTTP 200 OK")
+	assert.Contains(t, w.Body.String(), `"name":"Read Message Queue Proxy Reachable","ok":false`, "Read message queue proxy healthcheck should be unhappy")
+	assert.Contains(t, w.Body.String(), `"name":"Write Message Queue Proxy Reachable","ok":false`, "Write message queue proxy healthcheck should be unhappy")
+}
+
+func TestGTGHappyFlow(t *testing.T) {
+	hc := initializeHealthCheck(true, true)
+
+	status := hc.GTG()
+	assert.True(t, status.GoodToGo)
+	assert.Empty(t, status.Message)
+}
+
+func TestGTGBrokenConsumer(t *testing.T) {
+	hc := initializeHealthCheck(true, false)
+
+	status := hc.GTG()
+	assert.False(t, status.GoodToGo)
+	assert.Equal(t, "Error connecting to the queue", status.Message)
+}
+
+func TestGTGBrokenProducer(t *testing.T) {
+	hc := initializeHealthCheck(false, true)
+
+	status := hc.GTG()
+	assert.False(t, status.GoodToGo)
+	assert.Equal(t, "Error connecting to the queue", status.Message)
+}
+
+type mockProducerInstance struct {
+	isConnectionHealthy bool
+}
+
+type mockConsumerInstance struct {
+	isConnectionHealthy bool
+}
+
+func (p *mockProducerInstance) SendMessage(string, producer.Message) error {
+	return nil
+}
+
+func (p *mockProducerInstance) ConnectivityCheck() (string, error) {
+	if p.isConnectionHealthy {
+		return "", nil
 	}
 
-	router.Path("/topics").Handler(handlers.MethodHandler{"GET": http.HandlerFunc(getContent)})
-
-	queueServerMock = httptest.NewServer(router)
+	return "", errors.New("Error connecting to the queue")
 }
 
-func statusOKHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+func (c *mockConsumerInstance) Start() {
 }
 
-func internalErrorHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusInternalServerError)
+func (c *mockConsumerInstance) Stop() {
 }
 
-func newConsumerConfig(addr string) consumer.QueueConfig {
-	return consumer.QueueConfig{
-		Addrs:            []string{addr},
-		Queue:            "queue",
-		AuthorizationKey: "auth",
+func (c *mockConsumerInstance) ConnectivityCheck() (string, error) {
+	if c.isConnectionHealthy {
+		return "", nil
 	}
-}
 
-func newProducerConfig(addr string) producer.MessageProducerConfig {
-	return producer.MessageProducerConfig{
-		Addr:          addr,
-		Queue:         "queue",
-		Authorization: "auth",
-	}
+	return "", errors.New("Error connecting to the queue")
 }
