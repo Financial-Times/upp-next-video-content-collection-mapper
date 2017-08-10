@@ -1,0 +1,20 @@
+# Default values for upp-next-video-content-collection-mapper.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+service:
+  name: "" # The name of the service, should be defined in the specific app-configs folder.
+  hasHealthcheck: "true"
+replicaCount: 2
+image:
+  repository: coco/upp-next-video-content-collection-mapper
+  pullPolicy: IfNotPresent
+resources:
+  limits:
+    memory: 256Mi
+env:
+  APP_NAME: ""
+  APP_SYSTEM_CODE: ""
+  APP_PORT: ""
+  Q_GROUP: ""
+  Q_READ_TOPIC: ""
+  Q_WRITE_TOPIC: ""
