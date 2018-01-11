@@ -9,6 +9,8 @@ image:
   repository: coco/upp-next-video-content-collection-mapper
   pullPolicy: IfNotPresent
 resources:
+  requests:
+    memory: 140Mi
   limits:
     memory: 256Mi
 env:

@@ -7,6 +7,8 @@ import (
 	"github.com/Financial-Times/message-queue-go-producer/producer"
 	"github.com/Financial-Times/message-queue-gonsumer/consumer"
 	"github.com/Financial-Times/service-status-go/gtg"
+
+	"time"
 )
 
 type HealthCheck struct {
@@ -29,11 +31,14 @@ func NewHealthCheck(p producer.MessageProducer, c consumer.MessageConsumer, appN
 
 func (h *HealthCheck) Health() func(w http.ResponseWriter, r *http.Request) {
 	checks := []fthealth.Check{h.readQueueCheck(), h.writeQueueCheck()}
-	hc := fthealth.HealthCheck{
-		SystemCode:  h.appSystemCode,
-		Name:        h.appName,
-		Description: serviceDescription,
-		Checks:      checks,
+	hc := fthealth.TimedHealthCheck{
+		HealthCheck: fthealth.HealthCheck{
+			SystemCode:  h.appSystemCode,
+			Name:        h.appName,
+			Description: serviceDescription,
+			Checks:      checks,
+		},
+		Timeout: 10 * time.Second,
 	}
 	return fthealth.Handler(hc)
 }
