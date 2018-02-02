@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	log "github.com/Financial-Times/go-logger"
 )
 
 type serviceHandler struct {
@@ -32,7 +34,7 @@ func (h serviceHandler) mapRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	_, err = w.Write(mappedRelatedContentBytes)
 	if err != nil {
-		logger.serviceEvent(tid, err, "Writing response error.")
+		log.WithError(err).WithTransactionID(tid).Error("Writing response error.")
 	}
 }
 
@@ -47,7 +49,7 @@ func writerBadRequest(w http.ResponseWriter, err error, tid string) {
 	w.WriteHeader(http.StatusBadRequest)
 	_, err2 := w.Write([]byte(err.Error()))
 	if err2 != nil {
-		logger.serviceEvent(tid, err, "Couldn't write Bad Request response.")
+		log.WithError(err).WithTransactionID(tid).Error("Writing response error.")
 	}
 	return
 }

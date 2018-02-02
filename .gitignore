@@ -1,5 +1,5 @@
 *.iml
 *.exe
 .idea
-/next-video-content-collection-mapper*
+/upp-next-video-content-collection-mapper*
 vendor/*/
