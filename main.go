@@ -8,17 +8,16 @@ import (
 	"syscall"
 	"time"
 
+	log "github.com/Financial-Times/go-logger"
 	"github.com/Financial-Times/message-queue-go-producer/producer"
 	"github.com/Financial-Times/message-queue-gonsumer/consumer"
 	status "github.com/Financial-Times/service-status-go/httphandlers"
-	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/handlers"
 	"github.com/jawher/mow.cli"
 )
 
 const serviceDescription = "Get the related content references from the Next video content, creates a story package holding those references and puts a message with them on kafka queue for further processing and ingestion on Neo4j."
 
-var logger *appLogger
 var timeout = 10 * time.Second
 var httpCl = &http.Client{Timeout: timeout}
 
@@ -98,11 +97,11 @@ func main() {
 		EnvVar: "Q_WRITE_QUEUE",
 	})
 
-	logger = newAppLogger(*appName)
+	log.InitLogger(*serviceName, "info")
 
 	app.Action = func() {
 		if len(*addresses) == 0 {
-			logger.log.Info("No queue address provided. Quitting...")
+			log.Info("No queue address provided. Quitting...")
 			cli.Exit(1)
 		}
 
@@ -154,7 +153,7 @@ func serveAdminEndpoints(sc serviceConfig, sh serviceHandler, hc *HealthCheck) {
 	serveMux.HandleFunc(status.GTGPath, status.NewGoodToGoHandler(hc.GTG))
 	serveMux.HandleFunc(status.BuildInfoPath, status.BuildInfoHandler)
 
-	logger.serviceStartedEvent(sc.asMap())
+	log.Info("Service started", sc.asMap())
 
 	if err := http.ListenAndServe(":"+sc.port, serveMux); err != nil {
 		log.Fatalf("Unable to start: %v", err)
@@ -162,7 +161,10 @@ func serveAdminEndpoints(sc serviceConfig, sh serviceHandler, hc *HealthCheck) {
 }
 
 func consumeUntilSigterm(messageConsumer consumer.MessageConsumer, config consumer.QueueConfig) {
-	logger.messageEvent(config.Topic, "Starting queue consumer")
+	log.WithFields(map[string]interface{}{
+		"event":       "consume_queue",
+		"queue_topic": config.Topic,
+	}).Info("Starting queue consumer")
 
 	var consumerWaitGroup sync.WaitGroup
 	consumerWaitGroup.Add(1)

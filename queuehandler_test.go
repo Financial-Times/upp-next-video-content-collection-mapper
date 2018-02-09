@@ -1,18 +1,21 @@
 package main
 
 import (
-	"github.com/Financial-Times/message-queue-go-producer/producer"
-	"github.com/Financial-Times/message-queue-gonsumer/consumer"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"testing"
 	"time"
+
+	"github.com/Financial-Times/message-queue-go-producer/producer"
+	"github.com/Financial-Times/message-queue-gonsumer/consumer"
+	"github.com/stretchr/testify/assert"
+
+	log "github.com/Financial-Times/go-logger/test"
 )
 
 var lastModified = time.Now().Format(dateFormat)
 
 func init() {
-	logger = newAppLogger("test")
+	log.NewTestHook("test")
 }
 
 type mockMessageProducer struct {

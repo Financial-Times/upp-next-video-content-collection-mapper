@@ -1,16 +1,18 @@
 package main
 
 import (
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	log "github.com/Financial-Times/go-logger/test"
+	"github.com/stretchr/testify/assert"
 )
 
 func init() {
-	logger = newAppLogger("test")
+	log.NewTestHook("test")
 }
 
 func TestMapRequest(t *testing.T) {

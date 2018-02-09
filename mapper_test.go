@@ -2,9 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	log "github.com/Financial-Times/go-logger/test"
 )
 
 const (
@@ -15,7 +18,7 @@ const (
 var testMap = make(map[string]interface{})
 
 func init() {
-	logger = newAppLogger("test")
+	log.NewTestHook("test")
 	testMap["string"] = "value1"
 	testMap["nullstring"] = nil
 	testMap["bool"] = true

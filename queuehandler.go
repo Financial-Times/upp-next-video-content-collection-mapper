@@ -4,11 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/Financial-Times/message-queue-go-producer/producer"
 	"github.com/Financial-Times/message-queue-gonsumer/consumer"
 	"github.com/satori/go.uuid"
-	"net/http"
-	"time"
+
+	log "github.com/Financial-Times/go-logger"
 )
 
 const (
@@ -33,7 +36,7 @@ func (h *queueHandler) init() {
 
 func (h *queueHandler) queueConsume(m consumer.Message) {
 	if m.Headers["Origin-System-Id"] != nextVideoOrigin {
-		logger.messageEvent(h.consumerConfig.Topic, fmt.Sprintf("Ignoring message with different Origin-System-Id: %v", m.Headers["Origin-System-Id"]))
+		log.WithField("queue_topic", h.consumerConfig.Topic).Infof("Ignoring message with different Origin-System-Id: %v", m.Headers["Origin-System-Id"])
 		return
 	}
 	lastModified := m.Headers["Message-Timestamp"]
@@ -44,8 +47,10 @@ func (h *queueHandler) queueConsume(m consumer.Message) {
 	vm := relatedContentMapper{sc: h.sc, strContent: m.Body, tid: m.Headers["X-Request-Id"], lastModified: lastModified}
 	marshalledEvent, videoUUID, err := h.mapNextVideoAnnotationsMessage(&vm)
 	if err != nil {
-		logger.warnMessageEvent(queueEvent{h.sc.appName, h.consumerConfig.Queue, h.consumerConfig.Topic, vm.tid}, videoUUID, err,
-			"Error mapping the message from queue")
+		log.WithTransactionID(vm.tid).WithUUID(videoUUID).
+			WithField("queue_name", h.consumerConfig.Queue).
+			WithField("queue_topic", h.consumerConfig.Topic).
+			WithError(err).Warn("Error mapping the message from queue")
 		return
 	}
 
@@ -57,16 +62,22 @@ func (h *queueHandler) queueConsume(m consumer.Message) {
 	msgToSend := string(marshalledEvent)
 	err = h.messageProducer.SendMessage("", producer.Message{Headers: headers, Body: msgToSend})
 	if err != nil {
-		logger.warnMessageEvent(queueEvent{h.sc.appName, h.producerConfig.Queue, h.producerConfig.Topic, vm.tid}, videoUUID, err,
-			"Error sending transformed message to queue")
+		log.WithTransactionID(vm.tid).WithUUID(videoUUID).
+			WithField("queue_name", h.consumerConfig.Queue).
+			WithField("queue_topic", h.consumerConfig.Topic).
+			WithError(err).Warn("Error sending transformed message to queue")
 		return
 	}
-	logger.messageSentEvent(queueEvent{h.sc.appName, h.producerConfig.Queue, h.producerConfig.Topic, vm.tid}, videoUUID,
-		fmt.Sprintf("Mapped and sent: [%v]", msgToSend))
+
+	log.WithTransactionID(vm.tid).WithUUID(videoUUID).
+		WithField("queue_name", h.consumerConfig.Queue).
+		WithField("queue_topic", h.consumerConfig.Topic).
+		WithError(err).
+		Infof("Mapped and sent: [%v]", msgToSend)
 }
 
 func (h *queueHandler) mapNextVideoAnnotationsMessage(vm *relatedContentMapper) ([]byte, string, error) {
-	logger.messageEvent(h.consumerConfig.Topic, "Start mapping next video message.")
+	log.WithField("queue_topic", h.consumerConfig.Topic).Info("Start mapping next video message.")
 	if err := json.Unmarshal([]byte(vm.strContent), &vm.unmarshalled); err != nil {
 		return nil, "", fmt.Errorf("Video JSON from Next couldn't be unmarshalled: %v. Skipping invalid JSON: %v", err.Error(), vm.strContent)
 	}
