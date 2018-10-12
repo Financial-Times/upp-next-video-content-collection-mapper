@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Financial-Times/message-queue-go-producer/producer"
@@ -36,7 +37,11 @@ func (h *queueHandler) init() {
 
 func (h *queueHandler) queueConsume(m consumer.Message) {
 	if m.Headers["Origin-System-Id"] != nextVideoOrigin {
-		log.WithField("queue_topic", h.consumerConfig.Topic).Infof("Ignoring message with different Origin-System-Id: %v", m.Headers["Origin-System-Id"])
+		log.WithTransactionID(m.Headers["X-Request-Id"]).WithField("queue_topic", h.consumerConfig.Topic).Infof("Ignoring message with different Origin-System-Id: %v", m.Headers["Origin-System-Id"])
+		return
+	}
+	if strings.Contains(m.Headers["Content-Type"], "audio") {
+		log.WithTransactionID(m.Headers["X-Request-Id"]).WithField("queue_topic", h.consumerConfig.Topic).Infof("Ignoring message with Content-Type: %v", m.Headers["Content-Type"])
 		return
 	}
 	lastModified := m.Headers["Message-Timestamp"]

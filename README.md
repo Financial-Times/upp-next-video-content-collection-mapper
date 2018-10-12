@@ -9,18 +9,16 @@ Get the related content references from the Next video content ("related" field)
       
 Download the source code, dependencies and test dependencies:
 
-        go get -u github.com/kardianos/govendor
         go get -u github.com/Financial-Times/upp-next-video-content-collection-mapper
         cd $GOPATH/src/github.com/Financial-Times/upp-next-video-content-collection-mapper
-        govendor sync
+        dep ensure -v -vendor-only
         go build .
 
 ## Running locally
 
 1. Run the tests and install the binary:
 
-        govendor sync
-        govendor test -v -race
+        go test -race
         go install
 
 2. Run the binary (using the `help` flag to see the available optional arguments):
