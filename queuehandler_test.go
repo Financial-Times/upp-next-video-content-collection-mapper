@@ -28,6 +28,7 @@ func TestQueueConsume(t *testing.T) {
 	tests := []struct {
 		fileName        string
 		originSystem    string
+		contentType     string
 		tid             string
 		expectedMsgSent bool
 		expectedContent string
@@ -35,6 +36,7 @@ func TestQueueConsume(t *testing.T) {
 		{
 			"next-video-input.json",
 			nextVideoOrigin,
+			"application/json",
 			"1234",
 			true,
 			newStringMappedContent(t, "c4cde316-128c-11e7-80f4-13e067d5072c", "1234", lastModified),
@@ -42,6 +44,7 @@ func TestQueueConsume(t *testing.T) {
 		{
 			"next-video-input.json",
 			"other",
+			"application/json",
 			"1234",
 			false,
 			"",
@@ -49,6 +52,7 @@ func TestQueueConsume(t *testing.T) {
 		{
 			"next-video-input.json",
 			nextVideoOrigin,
+			"application/json",
 			"",
 			false,
 			"",
@@ -56,6 +60,7 @@ func TestQueueConsume(t *testing.T) {
 		{
 			"invalid-format.json",
 			nextVideoOrigin,
+			"application/json",
 			"1234",
 			false,
 			"",
@@ -63,6 +68,7 @@ func TestQueueConsume(t *testing.T) {
 		{
 			"next-video-invalid-related-input.json",
 			nextVideoOrigin,
+			"application/json",
 			"1234",
 			false,
 			"",
@@ -70,9 +76,26 @@ func TestQueueConsume(t *testing.T) {
 		{
 			"next-video-empty-related-input.json",
 			nextVideoOrigin,
+			"application/json",
 			"1234",
 			true,
 			newStringMappedContent(t, "", "1234", lastModified),
+		},
+		{
+			"next-video-empty-related-input.json",
+			nextVideoOrigin,
+			"audio",
+			"1234",
+			false,
+			"",
+		},
+		{
+			"next-video-empty-related-input.json",
+			nextVideoOrigin,
+			"application/vnd.ft-upp-audio",
+			"1234",
+			false,
+			"",
 		},
 	}
 
@@ -85,7 +108,7 @@ func TestQueueConsume(t *testing.T) {
 		}
 
 		msg := consumer.Message{
-			Headers: createHeaders(test.originSystem, test.tid, lastModified),
+			Headers: createHeaders(test.originSystem, test.contentType, test.tid, lastModified),
 			Body:    string(getBytes(test.fileName, t)),
 		}
 		h.queueConsume(msg)
@@ -97,9 +120,10 @@ func TestQueueConsume(t *testing.T) {
 	}
 }
 
-func createHeaders(originSystem string, requestID string, msgDate string) map[string]string {
+func createHeaders(originSystem string, contentType string, requestID string, msgDate string) map[string]string {
 	var result = make(map[string]string)
 	result["Origin-System-Id"] = originSystem
+	result["Content-Type"] = contentType
 	result["X-Request-Id"] = requestID
 	result["Message-Timestamp"] = msgDate
 	return result
