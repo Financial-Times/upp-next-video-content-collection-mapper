@@ -22,7 +22,7 @@ func (h serviceHandler) mapRequest(w http.ResponseWriter, r *http.Request) {
 
 	m := relatedContentMapper{sc: h.sc, strContent: string(body), tid: tid}
 
-	mappedRelatedContentBytes, _, err := h.mapRelatedContentRequest(&m)
+	mappedRelatedContentBytes, err := h.mapRelatedContentRequest(&m)
 	if err != nil {
 		writerBadRequest(w, err, tid)
 	}
@@ -38,11 +38,12 @@ func (h serviceHandler) mapRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h serviceHandler) mapRelatedContentRequest(m *relatedContentMapper) ([]byte, string, error) {
+func (h serviceHandler) mapRelatedContentRequest(m *relatedContentMapper) ([]byte, error) {
 	if err := json.Unmarshal([]byte(m.strContent), &m.unmarshalled); err != nil {
-		return nil, "", fmt.Errorf("Video JSON from Next couldn't be unmarshalled: %v. Skipping invalid JSON: %v", err.Error(), m.strContent)
+		return nil, fmt.Errorf("Video JSON from Next couldn't be unmarshalled: %v. Skipping invalid JSON: %v", err.Error(), m.strContent)
 	}
-	return m.mapRelatedContent()
+	mappedRelatedContentBytes, _, err := m.mapRelatedContent()
+	return mappedRelatedContentBytes, err
 }
 
 func writerBadRequest(w http.ResponseWriter, err error, tid string) {
@@ -51,5 +52,4 @@ func writerBadRequest(w http.ResponseWriter, err error, tid string) {
 	if err2 != nil {
 		log.WithError(err).WithTransactionID(tid).Error("Writing response error.")
 	}
-	return
 }
