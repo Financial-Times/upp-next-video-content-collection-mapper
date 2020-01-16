@@ -9,9 +9,8 @@ Get the related content references from the Next video content ("related" field)
       
 Download the source code, dependencies and test dependencies:
 
-        go get -u github.com/Financial-Times/upp-next-video-content-collection-mapper
+        go get github.com/Financial-Times/upp-next-video-content-collection-mapper
         cd $GOPATH/src/github.com/Financial-Times/upp-next-video-content-collection-mapper
-        dep ensure -v -vendor-only
         go build .
 
 ## Running locally
@@ -21,7 +20,7 @@ Download the source code, dependencies and test dependencies:
         go test -race
         go install
 
-2. Run the binary (using the `help` flag to see the available optional arguments):
+2. Run the binary (use the `help` flag to see the available optional arguments):
 
         $GOPATH/bin/next-video-content-collection-mapper [--help]
 

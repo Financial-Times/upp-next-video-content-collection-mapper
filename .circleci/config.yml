@@ -1,7 +1,7 @@
 version: 2
 jobs:
   build:
-    working_directory: /go/src/github.com/Financial-Times/upp-next-video-content-collection-mapper
+    working_directory: /upp-next-video-content-collection-mapper
     docker:
       - image: golang:1
         environment:
@@ -12,23 +12,24 @@ jobs:
       - run:
           name: External dependencies
           command: |
-            go get -u github.com/mattn/goveralls
-            go get -u github.com/jstemmer/go-junit-report
-            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+            GO111MODULE=off go get github.com/mattn/goveralls
+            GO111MODULE=off go get github.com/jstemmer/go-junit-report
+            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.21.0
+            wget https://raw.githubusercontent.com/Financial-Times/upp-coding-standard/v1.0.0/golangci-config/.golangci.yml
       - run:
           name: Make result folders
           command: |
             mkdir -p ${CIRCLE_TEST_REPORTS}
             mkdir -p ${CIRCLE_COVERAGE_REPORT}
       - run:
-          name: Download vendored dependencies
-          command: dep ensure -v -vendor-only
-      - run:
           name: Go build
-          command: go build -v
+          command: go build -mod=readonly -v
+      - run:
+          name: Run linters
+          command: golangci-lint run --new-from-rev=$(git rev-parse origin/master) --config .golangci.yml  
       - run:
           name: Run tests
-          command: go test -race -cover -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out ./... | go-junit-report > ${CIRCLE_TEST_REPORTS}/junit.xml
+          command: go test -mod=readonly -race -cover -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out ./... | go-junit-report > ${CIRCLE_TEST_REPORTS}/junit.xml
       - run:
           name: Upload coverage
           command: goveralls -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out -service=circle-ci -repotoken=${COVERALLS_TOKEN}
@@ -37,7 +38,7 @@ jobs:
   dockerfile:
     working_directory: /upp-next-video-content-collection-mapper
     docker:
-      - image: docker:18.03
+      - image: docker:18
     steps:
       - checkout
       - setup_docker_engine
