@@ -9,11 +9,13 @@ import (
 	"time"
 
 	log "github.com/Financial-Times/go-logger"
+	logger2 "github.com/Financial-Times/go-logger/v2"
+
 	"github.com/Financial-Times/message-queue-go-producer/producer"
-	"github.com/Financial-Times/message-queue-gonsumer/consumer"
+	consumer "github.com/Financial-Times/message-queue-gonsumer"
 	status "github.com/Financial-Times/service-status-go/httphandlers"
 	"github.com/gorilla/handlers"
-	"github.com/jawher/mow.cli"
+	cli "github.com/jawher/mow.cli"
 )
 
 const serviceDescription = "Get the related content references from the Next video content, creates a story package holding those references and puts a message with them on kafka queue for further processing and ingestion on Neo4j."
@@ -25,6 +27,7 @@ type serviceConfig struct {
 	appName     string
 	serviceName string
 	port        string
+	log         *logger2.UPPLogger
 }
 
 func main() {
@@ -53,6 +56,12 @@ func main() {
 		Value:  "8080",
 		Desc:   "Port to listen on",
 		EnvVar: "APP_PORT",
+	})
+	logLevel := app.String(cli.StringOpt{
+		Name:   "logLevel",
+		Value:  "INFO",
+		Desc:   "Logging level (DEBUG, INFO, WARN, ERROR)",
+		EnvVar: "LOG_LEVEL",
 	})
 	panicGuide := app.String(cli.StringOpt{
 		Name:   "panic-guide",
@@ -97,18 +106,21 @@ func main() {
 		EnvVar: "Q_WRITE_QUEUE",
 	})
 
-	log.InitLogger(*serviceName, "info")
-
 	app.Action = func() {
+		log.InitLogger(*serviceName, *logLevel)
+
 		if len(*addresses) == 0 {
 			log.Info("No queue address provided. Quitting...")
 			cli.Exit(1)
 		}
-
+		logConfig := logger2.KeyNamesConfig{KeyTime: "@time"}
+		l := logger2.NewUPPLogger(*serviceName, *logLevel, logConfig)
+		
 		sc := serviceConfig{
 			appName:     *appName,
 			serviceName: *serviceName,
 			port:        *port,
+			log:         l,
 		}
 		sh := serviceHandler{sc}
 
