@@ -184,7 +184,7 @@ func consumeUntilSigterm(messageConsumer consumer.MessageConsumer, config consum
 		messageConsumer.Start()
 		consumerWaitGroup.Done()
 	}()
-	ch := make(chan os.Signal)
+	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	<-ch
 	messageConsumer.Stop()
