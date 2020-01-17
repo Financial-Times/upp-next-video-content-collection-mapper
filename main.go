@@ -65,7 +65,7 @@ func main() {
 	})
 	panicGuide := app.String(cli.StringOpt{
 		Name:   "panic-guide",
-		Value:  "https://dewey.ft.com/upp-next-video-cc-mapper.html",
+		Value:  "https://runbooks.in.ft.com/upp-next-video-cc-mapper",
 		Desc:   "Path to panic guide",
 		EnvVar: "PANIC_GUIDE",
 	})
@@ -115,7 +115,7 @@ func main() {
 		}
 		logConfig := logger2.KeyNamesConfig{KeyTime: "@time"}
 		l := logger2.NewUPPLogger(*serviceName, *logLevel, logConfig)
-		
+
 		sc := serviceConfig{
 			appName:     *appName,
 			serviceName: *serviceName,
