@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/Financial-Times/message-queue-go-producer/producer"
-	"github.com/Financial-Times/message-queue-gonsumer/consumer"
-	"github.com/satori/go.uuid"
+	consumer "github.com/Financial-Times/message-queue-gonsumer"
+	uuid "github.com/satori/go.uuid"
 
 	log "github.com/Financial-Times/go-logger"
 )
@@ -32,7 +32,7 @@ type queueHandler struct {
 
 func (h *queueHandler) init() {
 	h.messageProducer = producer.NewMessageProducer(h.producerConfig)
-	h.messageConsumer = consumer.NewConsumer(h.consumerConfig, h.queueConsume, h.httpCl)
+	h.messageConsumer = consumer.NewConsumer(h.consumerConfig, h.queueConsume, h.httpCl, h.sc.log)
 }
 
 func (h *queueHandler) queueConsume(m consumer.Message) {

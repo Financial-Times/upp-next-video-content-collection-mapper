@@ -9,9 +9,8 @@ Get the related content references from the Next video content ("related" field)
       
 Download the source code, dependencies and test dependencies:
 
-        go get -u github.com/Financial-Times/upp-next-video-content-collection-mapper
+        go get github.com/Financial-Times/upp-next-video-content-collection-mapper
         cd $GOPATH/src/github.com/Financial-Times/upp-next-video-content-collection-mapper
-        dep ensure -v -vendor-only
         go build .
 
 ## Running locally
@@ -21,17 +20,18 @@ Download the source code, dependencies and test dependencies:
         go test -race
         go install
 
-2. Run the binary (using the `help` flag to see the available optional arguments):
+2. Run the binary (use the `help` flag to see the available optional arguments):
 
         $GOPATH/bin/next-video-content-collection-mapper [--help]
 
 Options:
-
-        --app-system-code="upp-next-video-content-collection-mapper"    System Code of the application ($APP_SYSTEM_CODE)
+       
+	    --app-system-code="upp-next-video-content-collection-mapper"    System Code of the application ($APP_SYSTEM_CODE)
         --app-name="Next Video Content Collection Mapper"               Application name ($APP_NAME)
         --service-name="next-video-content-collection-mapper"           Service name ($SERVICE_NAME)
         --port="8080"                                                   Port to listen on ($APP_PORT)
-        --queue-addresses="http://%H:8080"                              Queue address ($Q_ADDR)
+        --log-level                                             	    Logging level (DEBUG, INFO, WARN, ERROR) ($LOG_LEVEL)(default "INFO") 
+		--queue-addresses="http://%H:8080"                              Queue address ($Q_ADDR)
         --group="NextVideoContentCollectionMapper"                      Group used to read messages from queue ($Q_GROUP)
         --read-topic="NativeCmsPublicationEvents"                       Queue topic name from where to read the messages ($Q_READ_TOPIC)
         --read-queue="kafka"                                            The queue to read the messages from ($Q_READ_QUEUE)

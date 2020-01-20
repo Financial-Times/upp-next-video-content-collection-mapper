@@ -6,8 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	logger2 "github.com/Financial-Times/go-logger/v2"
 	"github.com/Financial-Times/message-queue-go-producer/producer"
-	"github.com/Financial-Times/message-queue-gonsumer/consumer"
+	consumer "github.com/Financial-Times/message-queue-gonsumer"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,9 +20,11 @@ func initializeHealthCheck(isProducerConnectionHealthy bool, isConsumerConnectio
 }
 
 func TestNewHealthCheck(t *testing.T) {
+	logConfig := logger2.KeyNamesConfig{KeyTime: "@time"}
+	l := logger2.NewUPPLogger("Test", "PANIC", logConfig)
 	hc := NewHealthCheck(
 		producer.NewMessageProducer(producer.MessageProducerConfig{}),
-		consumer.NewConsumer(consumer.QueueConfig{}, func(m consumer.Message) {}, http.DefaultClient),
+		consumer.NewConsumer(consumer.QueueConfig{}, func(m consumer.Message) {}, http.DefaultClient, l),
 		"appName",
 		"appSystemCode",
 		"panicGuide",
