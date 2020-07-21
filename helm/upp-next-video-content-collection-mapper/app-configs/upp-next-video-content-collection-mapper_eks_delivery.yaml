@@ -1,0 +1,12 @@
+# Values used for the deployed application.
+replicaCount: 2
+service:
+  name: upp-next-video-content-collection-mapper
+eksCluster: true
+env:
+  APP_NAME: "Next Video Content Collection Mapper"
+  APP_SYSTEM_CODE: upp-next-video-cc-mapper
+  APP_PORT: 8080
+  Q_GROUP: NextVideoContentCollectionMapper
+  Q_READ_TOPIC: NativeCmsPublicationEvents
+  Q_WRITE_TOPIC: CmsPublicationEvents
