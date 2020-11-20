@@ -2,7 +2,6 @@
 replicaCount: 2
 service:
   name: upp-next-video-content-collection-mapper
-eksCluster: true
 env:
   APP_NAME: "Next Video Content Collection Mapper"
   APP_SYSTEM_CODE: upp-next-video-cc-mapper
