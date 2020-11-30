@@ -11,14 +11,13 @@ Download the source code, dependencies and test dependencies:
 
         go get -u github.com/Financial-Times/upp-next-video-content-collection-mapper
         cd $GOPATH/src/github.com/Financial-Times/upp-next-video-content-collection-mapper
-        dep ensure -v -vendor-only
-        go build .
+        go build -mod=readonly
 
 ## Running locally
 
 1. Run the tests and install the binary:
 
-        go test -race
+        go test -mod=readonly -race -cover  ./... -v
         go install
 
 2. Run the binary (using the `help` flag to see the available optional arguments):
