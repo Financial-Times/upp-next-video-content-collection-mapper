@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	videoUUIDField     = "id"
+	videoUUIDField     = "uuid"
+	videoIDField       = "id"
 	relatedField       = "related"
 	deletedField       = "deleted"
 	relatedItemIDField = "uuid"
@@ -28,9 +29,19 @@ type relatedContentMapper struct {
 }
 
 func (m *relatedContentMapper) mapRelatedContent() ([]byte, string, error) {
-	videoUUID, err := getRequiredStringField(videoUUIDField, m.unmarshalled)
-	if err != nil {
-		return nil, "", err
+	var videoUUID string
+	var err error
+
+	if m.isDeleteEvent() {
+		videoUUID, err = getRequiredStringField(videoUUIDField, m.unmarshalled)
+		if err != nil {
+			return nil, "", err
+		}
+	} else {
+		videoUUID, err = getRequiredStringField(videoIDField, m.unmarshalled)
+		if err != nil {
+			return nil, "", err
+		}
 	}
 
 	contentCollectionUUID, err := generateContentCollectionUUID(videoUUID)
