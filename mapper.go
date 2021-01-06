@@ -29,19 +29,17 @@ type relatedContentMapper struct {
 }
 
 func (m *relatedContentMapper) mapRelatedContent() ([]byte, string, error) {
-	var videoUUID string
-	var err error
+	var uuidField string
 
 	if m.isDeleteEvent() {
-		videoUUID, err = getRequiredStringField(videoUUIDField, m.unmarshalled)
-		if err != nil {
-			return nil, "", err
-		}
+		uuidField = videoUUIDField
 	} else {
-		videoUUID, err = getRequiredStringField(videoIDField, m.unmarshalled)
-		if err != nil {
-			return nil, "", err
-		}
+		uuidField = videoIDField
+	}
+
+	videoUUID, err := getRequiredStringField(uuidField, m.unmarshalled)
+	if err != nil {
+		return nil, "", err
 	}
 
 	contentCollectionUUID, err := generateContentCollectionUUID(videoUUID)
