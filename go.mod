@@ -10,13 +10,13 @@ require (
 	github.com/Financial-Times/service-status-go v0.0.0-20160323111542-3f5199736a3d
 	github.com/Financial-Times/uuid-utils-go v0.0.0-20170516110427-e22658edd0f1
 	github.com/davecgh/go-spew v1.1.0 // indirect
-	github.com/gorilla/handlers v1.2.1
+	github.com/google/uuid v1.3.0
+	github.com/gorilla/handlers v1.3.0
 	github.com/hashicorp/go-version v0.0.0-20170202080759-03c5bf6be031 // indirect
 	github.com/jawher/mow.cli v0.0.0-20161123225447-0de3d3b4ed00
 	github.com/onsi/ginkgo v1.14.2 // indirect
 	github.com/onsi/gomega v1.10.3 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/satori/go.uuid v1.1.1-0.20170321230731-5bf94b69c6b6
 	github.com/sirupsen/logrus v1.0.5-0.20180129181852-768a92a02685 // indirect
 	github.com/stretchr/testify v1.1.5-0.20170130113145-4d4bfba8f1d1
 	github.com/willf/bitset v1.1.2 // indirect
