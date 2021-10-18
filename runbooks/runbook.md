@@ -19,27 +19,6 @@ Bronze
 
 Production
 
-## Delivered By
-
-content
-
-## Supported By
-
-content
-
-## Known About By
-
-- hristo.georgiev
-- robert.marinov
-- elina.kaneva
-- georgi.ivanov
-- tsvetan.dimitrov
-- kalin.arsov
-- mihail.mihaylov
-- boyko.boykov
-- donislav.belev
-- dimitar.terziev
-
 ## Host Platform
 
 AWS
@@ -56,10 +35,6 @@ No
 ## Contains Sensitive Data
 
 No
-
-## Dependencies
-
-- kafka-proxy
 
 ## Failover Architecture Type
 

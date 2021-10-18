@@ -10,7 +10,7 @@ import (
 
 	"github.com/Financial-Times/message-queue-go-producer/producer"
 	"github.com/Financial-Times/message-queue-gonsumer/consumer"
-	"github.com/satori/go.uuid"
+	"github.com/google/uuid"
 
 	log "github.com/Financial-Times/go-logger"
 )
@@ -96,7 +96,7 @@ func createHeader(origMsgHeaders map[string]string, lastModified string) map[str
 	return map[string]string{
 		"X-Request-Id":      origMsgHeaders["X-Request-Id"],
 		"Message-Timestamp": lastModified,
-		"Message-Id":        uuid.NewV4().String(),
+		"Message-Id":        uuid.New().String(),
 		"Message-Type":      generatedMsgType,
 		"Content-Type":      "application/json",
 		"Origin-System-Id":  origMsgHeaders["Origin-System-Id"],
