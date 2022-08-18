@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
-	log "github.com/Financial-Times/go-logger"
+	"github.com/Financial-Times/go-logger/v2"
 	uuidUtils "github.com/Financial-Times/uuid-utils-go"
 )
 
@@ -26,6 +25,7 @@ type relatedContentMapper struct {
 	tid          string
 	lastModified string
 	unmarshalled map[string]interface{}
+	log          *logger.UPPLogger
 }
 
 func (m *relatedContentMapper) mapRelatedContent() ([]byte, string, error) {
@@ -44,7 +44,7 @@ func (m *relatedContentMapper) mapRelatedContent() ([]byte, string, error) {
 
 	contentCollectionUUID, err := generateContentCollectionUUID(videoUUID)
 	if err != nil {
-		log.WithTransactionID(m.tid).WithUUID(videoUUID).Warn(err.Error())
+		m.log.WithTransactionID(m.tid).WithUUID(videoUUID).Warn(err.Error())
 		return nil, "", errors.New("Error generating story package UUID")
 	}
 
@@ -65,7 +65,7 @@ func (m *relatedContentMapper) mapRelatedContent() ([]byte, string, error) {
 
 	marshalledPubEvent, err := json.Marshal(mc)
 	if err != nil {
-		log.WithTransactionID(m.tid).WithUUID(videoUUID).Warn("Error marshalling processed related items")
+		m.log.WithTransactionID(m.tid).WithUUID(videoUUID).Warn("Error marshalling processed related items")
 		return nil, videoUUID, err
 	}
 
@@ -77,7 +77,7 @@ func (m *relatedContentMapper) retrieveRelatedItems(relatedItemsArray []map[stri
 	for _, relatedItem := range relatedItemsArray {
 		itemID, err := getRequiredStringField(relatedItemIDField, relatedItem)
 		if err != nil {
-			log.WithTransactionID(m.tid).WithUUID(videoUUID).WithError(err).Warn("Cannot extract related item id from related field")
+			m.log.WithTransactionID(m.tid).WithUUID(videoUUID).WithError(err).Warn("Cannot extract related item id from related field")
 			continue
 		}
 		result = append(result, Item{UUID: itemID})
@@ -122,7 +122,7 @@ func getObjectsArrayField(key string, obj map[string]interface{}, videoUUID stri
 	var result = make([]map[string]interface{}, 0)
 	objArrayI, ok := obj[key]
 	if !ok {
-		log.WithTransactionID(vm.tid).WithUUID(videoUUID).
+		vm.log.WithTransactionID(vm.tid).WithUUID(videoUUID).
 			WithField("event", "map").
 			Infof(nullFieldError(key).Error())
 

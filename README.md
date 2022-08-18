@@ -30,14 +30,13 @@ Options:
         --app-name="Next Video Content Collection Mapper"               Application name ($APP_NAME)
         --service-name="next-video-content-collection-mapper"           Service name ($SERVICE_NAME)
         --port="8080"                                                   Port to listen on ($APP_PORT)
-        --queue-addresses="http://%H:8080"                              Queue address ($Q_ADDR)
+        --queue-kafkaAddress="%H:9092"                                  Queue address ($KAFKA_ADDRESS)
         --group="NextVideoContentCollectionMapper"                      Group used to read messages from queue ($Q_GROUP)
         --read-topic="NativeCmsPublicationEvents"                       Queue topic name from where to read the messages ($Q_READ_TOPIC)
-        --read-queue="kafka"                                            The queue to read the messages from ($Q_READ_QUEUE)
         --write-topic="CmsPublicationEvents"                            Queue topic name where to write the messages ($Q_WRITE_TOPIC)
-        --write-queue="kafka"                                           The queue to write the messages to ($Q_WRITE_QUEUE)
-
-There are defaults values used for properties so when deployed locally it can be run the excutable only.
+        --logLevel="INFO"                                               Logging level {DEBUG, INFO, WARN, ERROR} ($LOG_LEVEL)
+        --consumerLagTolerance=120                                      Kafka consumer lag tolerance ($KAFKA_LAG_TOLERANCE)
+There are defaults values used for properties so when deployed locally it can be run the executable only.
 
 3. Test:
 

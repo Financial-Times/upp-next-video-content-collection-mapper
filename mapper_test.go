@@ -5,9 +5,8 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/Financial-Times/go-logger/v2"
 	"github.com/stretchr/testify/assert"
-
-	log "github.com/Financial-Times/go-logger/test"
 )
 
 const (
@@ -18,7 +17,6 @@ const (
 var testMap = make(map[string]interface{})
 
 func init() {
-	log.NewTestHook("test")
 	testMap["string"] = "value1"
 	testMap["nullstring"] = nil
 	testMap["bool"] = true
@@ -34,8 +32,8 @@ func init() {
 }
 
 func TestBuildRelatedItems(t *testing.T) {
-	assert := assert.New(t)
-	m := relatedContentMapper{}
+	log := logger.NewUPPLogger("video-mapper", "Debug")
+	m := relatedContentMapper{log: log}
 	tests := []struct {
 		nextRelatedItem []map[string]interface{}
 		expectedItems   []Item
@@ -59,12 +57,11 @@ func TestBuildRelatedItems(t *testing.T) {
 	}
 	for _, test := range tests {
 		items := m.retrieveRelatedItems(test.nextRelatedItem, "")
-		assert.Equal(test.expectedItems, items, "Related items are wrong. Test input: [%v]", test.nextRelatedItem)
+		assert.Equal(t, test.expectedItems, items, "Related items are wrong. Test input: [%v]", test.nextRelatedItem)
 	}
 }
 
 func TestMapNextVideoRelatedContentHappyFlows(t *testing.T) {
-	assert := assert.New(t)
 	tests := []struct {
 		fileName          string
 		expectedContent   string
@@ -88,7 +85,7 @@ func TestMapNextVideoRelatedContentHappyFlows(t *testing.T) {
 	for _, test := range tests {
 		nextVideo, err := readContent(test.fileName)
 		if err != nil {
-			assert.Fail(err.Error())
+			assert.Fail(t, err.Error())
 		}
 		m := relatedContentMapper{
 			sc:           serviceConfig{},
@@ -97,14 +94,14 @@ func TestMapNextVideoRelatedContentHappyFlows(t *testing.T) {
 
 		marshalledContent, videoUUID, err := m.mapRelatedContent()
 
-		assert.Equal(test.expectedContent, string(marshalledContent), "Marshalled content wrong. Input JSON: %s", test.fileName)
-		assert.Equal(test.expectedVideoUUID, videoUUID, "Video UUID wrong. Input JSON: %s", test.fileName)
-		assert.Equal(test.expectedErrStatus, err != nil, "Error status wrong. Input JSON: %s", test.fileName)
+		assert.Equal(t, test.expectedContent, string(marshalledContent), "Marshalled content wrong. Input JSON: %s", test.fileName)
+		assert.Equal(t, test.expectedVideoUUID, videoUUID, "Video UUID wrong. Input JSON: %s", test.fileName)
+		assert.Equal(t, test.expectedErrStatus, err != nil, "Error status wrong. Input JSON: %s", test.fileName)
 	}
 }
 
 func TestMapNextVideoRelatedContentMissingFields(t *testing.T) {
-	assert := assert.New(t)
+	log := logger.NewUPPLogger("video-mapper", "Debug")
 	tests := []struct {
 		fileName          string
 		expectedErrStatus bool
@@ -134,16 +131,15 @@ func TestMapNextVideoRelatedContentMissingFields(t *testing.T) {
 	for _, test := range tests {
 		nextVideo, err := readContent(test.fileName)
 		if err != nil {
-			assert.Fail(err.Error())
+			assert.Fail(t, err.Error())
 		}
-		m := relatedContentMapper{unmarshalled: nextVideo}
+		m := relatedContentMapper{unmarshalled: nextVideo, log: log}
 		_, _, err = m.mapRelatedContent()
-		assert.Equal(test.expectedErrStatus, err != nil, "Error status wrong. Input JSON: %s", test.fileName)
+		assert.Equal(t, test.expectedErrStatus, err != nil, "Error status wrong. Input JSON: %s", test.fileName)
 	}
 }
 
 func TestGetRequiredStringField(t *testing.T) {
-	assert := assert.New(t)
 	tests := []struct {
 		key           string
 		expectedValue interface{}
@@ -173,14 +169,14 @@ func TestGetRequiredStringField(t *testing.T) {
 
 	for _, test := range tests {
 		result, err := getRequiredStringField(test.key, testMap)
-		assert.Equal(test.expectedValue, result, "Value is wrong. Map key: %s", test.key)
-		assert.Equal(test.expectedIsErr, err != nil, "Error status is wrong. Map key: %s", test.key)
+		assert.Equal(t, test.expectedValue, result, "Value is wrong. Map key: %s", test.key)
+		assert.Equal(t, test.expectedIsErr, err != nil, "Error status is wrong. Map key: %s", test.key)
 	}
 }
 
 func TestGetObjectsArrayField(t *testing.T) {
-	assert := assert.New(t)
-	m := relatedContentMapper{}
+	log := logger.NewUPPLogger("video-mapper", "Debug")
+	m := relatedContentMapper{log: log}
 	var objArray = make([]map[string]interface{}, 0)
 	var objValue = make(map[string]interface{})
 	objValue["field1"] = "test"
@@ -215,8 +211,8 @@ func TestGetObjectsArrayField(t *testing.T) {
 
 	for _, test := range tests {
 		result, err := getObjectsArrayField(test.key, testMap, "videoUUID", &m)
-		assert.Equal(test.expectedValue, result, "Value is wrong. Map key: %s", test.key)
-		assert.Equal(test.expectedIsErr, err != nil, "Error status is wrong. Map key: %s", test.key)
+		assert.Equal(t, test.expectedValue, result, "Value is wrong. Map key: %s", test.key)
+		assert.Equal(t, test.expectedIsErr, err != nil, "Error status is wrong. Map key: %s", test.key)
 	}
 }
 

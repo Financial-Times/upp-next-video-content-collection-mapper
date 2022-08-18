@@ -5,18 +5,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Financial-Times/message-queue-go-producer/producer"
-	"github.com/Financial-Times/message-queue-gonsumer/consumer"
+	"github.com/Financial-Times/go-logger/v2"
+	"github.com/Financial-Times/kafka-client-go/v3"
 	"github.com/stretchr/testify/assert"
-
-	log "github.com/Financial-Times/go-logger/test"
 )
 
 var lastModified = time.Now().Format(dateFormat)
-
-func init() {
-	log.NewTestHook("test")
-}
 
 type mockMessageProducer struct {
 	message    string
@@ -24,7 +18,6 @@ type mockMessageProducer struct {
 }
 
 func TestQueueConsume(t *testing.T) {
-	assert := assert.New(t)
 	tests := []struct {
 		fileName        string
 		originSystem    string
@@ -102,20 +95,22 @@ func TestQueueConsume(t *testing.T) {
 	for _, test := range tests {
 		mockMsgProducer := mockMessageProducer{}
 		var msgProducer = &mockMsgProducer
+		log := logger.NewUPPLogger("video-mapper", "Debug")
 		h := queueHandler{
 			sc:              serviceConfig{},
 			messageProducer: msgProducer,
+			log:             log,
 		}
 
-		msg := consumer.Message{
+		msg := kafka.FTMessage{
 			Headers: createHeaders(test.originSystem, test.contentType, test.tid, lastModified),
 			Body:    string(getBytes(test.fileName, t)),
 		}
 		h.queueConsume(msg)
 
-		assert.Equal(test.expectedMsgSent, mockMsgProducer.sendCalled,
+		assert.Equal(t, test.expectedMsgSent, mockMsgProducer.sendCalled,
 			"Message sending check is wrong. Input JSON file: %s, Origin-System-Id: %s, X-Request-Id: %s", test.fileName, test.originSystem, test.tid)
-		assert.Equal(test.expectedContent, mockMsgProducer.message,
+		assert.Equal(t, test.expectedContent, mockMsgProducer.message,
 			"Marshalled content wrong. Input JSON file: %s, Origin-System-Id: %s, X-Request-Id: %s", test.fileName, test.originSystem, test.tid)
 	}
 }
@@ -129,7 +124,7 @@ func createHeaders(originSystem string, contentType string, requestID string, ms
 	return result
 }
 
-func (mock *mockMessageProducer) SendMessage(uuid string, message producer.Message) error {
+func (mock *mockMessageProducer) SendMessage(message kafka.FTMessage) error {
 	mock.message = message.Body
 	mock.sendCalled = true
 	return nil
