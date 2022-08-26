@@ -2,24 +2,30 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
-	"github.com/Financial-Times/message-queue-go-producer/producer"
-	"github.com/Financial-Times/message-queue-gonsumer/consumer"
+	"github.com/Financial-Times/kafka-client-go/v3"
 	"github.com/Financial-Times/service-status-go/gtg"
-
-	"time"
 )
 
+type messageConsumerHealthcheck interface {
+	ConnectivityCheck() error
+	MonitorCheck() error
+}
+
+type messageProducerHealthcheck interface {
+	ConnectivityCheck() error
+}
 type HealthCheck struct {
-	consumer      consumer.MessageConsumer
-	producer      producer.MessageProducer
+	consumer      messageConsumerHealthcheck
+	producer      messageProducerHealthcheck
 	appSystemCode string
 	appName       string
 	panicGuide    string
 }
 
-func NewHealthCheck(p producer.MessageProducer, c consumer.MessageConsumer, appName, appSystemCode, panicGuide string) *HealthCheck {
+func NewHealthCheck(p messageProducerHealthcheck, c messageConsumerHealthcheck, appName, appSystemCode, panicGuide string) *HealthCheck {
 	return &HealthCheck{
 		consumer:      c,
 		producer:      p,
@@ -30,7 +36,7 @@ func NewHealthCheck(p producer.MessageProducer, c consumer.MessageConsumer, appN
 }
 
 func (h *HealthCheck) Health() func(w http.ResponseWriter, r *http.Request) {
-	checks := []fthealth.Check{h.readQueueCheck(), h.writeQueueCheck()}
+	checks := []fthealth.Check{h.readQueueCheck(), h.readQueueLagCheck(), h.writeQueueCheck()}
 	hc := fthealth.TimedHealthCheck{
 		HealthCheck: fthealth.HealthCheck{
 			SystemCode:  h.appSystemCode,
@@ -45,34 +51,46 @@ func (h *HealthCheck) Health() func(w http.ResponseWriter, r *http.Request) {
 
 func (h *HealthCheck) readQueueCheck() fthealth.Check {
 	return fthealth.Check{
-		ID:               "read-message-queue-proxy-reachable",
-		Name:             "Read Message Queue Proxy Reachable",
+		ID:               "read-message-queue-reachable",
+		Name:             "Read Message Queue Reachable",
 		Severity:         2,
 		BusinessImpact:   "Related content from published Next videos will not be processed, clients will not see them within content.",
-		TechnicalSummary: "Read message queue proxy is not reachable/healthy",
+		TechnicalSummary: "Read message queue is not reachable/healthy",
 		PanicGuide:       h.panicGuide,
-		Checker:          h.consumer.ConnectivityCheck,
+		Checker:          h.checkIfKafkaIsReachableFromConsumer,
 	}
 }
 
 func (h *HealthCheck) writeQueueCheck() fthealth.Check {
 	return fthealth.Check{
-		ID:               "write-message-queue-proxy-reachable",
-		Name:             "Write Message Queue Proxy Reachable",
+		ID:               "write-message-queue-reachable",
+		Name:             "Write Message Queue Reachable",
 		Severity:         2,
 		BusinessImpact:   "Related content from published Next videos will not be processed, clients will not see them within content.",
-		TechnicalSummary: "Write message queue proxy is not reachable/healthy",
+		TechnicalSummary: "Write message queue is not reachable/healthy",
 		PanicGuide:       h.panicGuide,
-		Checker:          h.producer.ConnectivityCheck,
+		Checker:          h.checkIfKafkaIsReachableFromProducer,
+	}
+}
+
+func (h *HealthCheck) readQueueLagCheck() fthealth.Check {
+	return fthealth.Check{
+		ID:               "read-message-queue-lagging",
+		Name:             "Read Message Queue Is Not Lagging",
+		Severity:         3,
+		BusinessImpact:   "Related content from published Next videos will be processed with latency.",
+		TechnicalSummary: kafka.LagTechnicalSummary,
+		PanicGuide:       h.panicGuide,
+		Checker:          h.checkIfConsumerIsLagging,
 	}
 }
 
 func (h *HealthCheck) GTG() gtg.Status {
 	consumerCheck := func() gtg.Status {
-		return gtgCheck(h.consumer.ConnectivityCheck)
+		return gtgCheck(h.checkIfKafkaIsReachableFromConsumer)
 	}
 	producerCheck := func() gtg.Status {
-		return gtgCheck(h.producer.ConnectivityCheck)
+		return gtgCheck(h.checkIfKafkaIsReachableFromProducer)
 	}
 
 	return gtg.FailFastParallelCheck([]gtg.StatusChecker{
@@ -86,4 +104,28 @@ func gtgCheck(handler func() (string, error)) gtg.Status {
 		return gtg.Status{GoodToGo: false, Message: err.Error()}
 	}
 	return gtg.Status{GoodToGo: true}
+}
+
+func (h *HealthCheck) checkIfKafkaIsReachableFromConsumer() (string, error) {
+	err := h.consumer.ConnectivityCheck()
+	if err != nil {
+		return "", err
+	}
+	return "OK", nil
+}
+
+func (h *HealthCheck) checkIfConsumerIsLagging() (string, error) {
+	err := h.consumer.MonitorCheck()
+	if err != nil {
+		return "", err
+	}
+	return "OK", nil
+}
+
+func (h *HealthCheck) checkIfKafkaIsReachableFromProducer() (string, error) {
+	err := h.producer.ConnectivityCheck()
+	if err != nil {
+		return "", err
+	}
+	return "OK", nil
 }

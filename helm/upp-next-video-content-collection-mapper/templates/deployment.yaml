@@ -47,11 +47,15 @@ spec:
           value: "{{ .Values.env.Q_READ_TOPIC }}"
         - name: Q_WRITE_TOPIC
           value: "{{ .Values.env.Q_WRITE_TOPIC }}"
-        - name: Q_ADDR
+        - name: KAFKA_ADDRESS
           valueFrom:
             configMapKeyRef:
               name: global-config
-              key: kafka.proxy.url.with.protocol
+              key: msk.kafka.broker.url
+        - name: KAFKA_LAG_TOLERANCE
+          value: "{{ .Values.env.KAFKA_LAG_TOLERANCE }}"
+        - name: LOG_LEVEL
+          value: "{{ .Values.env.LOG_LEVEL }}"
         ports:
         - containerPort: 8080
         livenessProbe:
