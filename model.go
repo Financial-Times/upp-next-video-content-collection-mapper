@@ -7,6 +7,7 @@ type ContentCollection struct {
 	PublishReference string `json:"publishReference,omitempty"`
 	LastModified     string `json:"lastModified,omitempty"`
 	CollectionType   string `json:"type,omitempty"`
+	Deleted          bool   `json:"deleted,omitempty"`
 }
 
 // Item within content collection

@@ -59,6 +59,9 @@ func (m *relatedContentMapper) mapRelatedContent() ([]byte, string, error) {
 		if len(relatedItems) > 0 {
 			cc = m.newContentCollection(contentCollectionUUID, relatedItems)
 		}
+	} else {
+		cc.Deleted = true
+		cc.UUID = videoUUID
 	}
 
 	mc := m.newMappedContent(contentCollectionUUID, cc)
