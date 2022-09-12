@@ -59,6 +59,8 @@ func (m *relatedContentMapper) mapRelatedContent() ([]byte, string, error) {
 		if len(relatedItems) > 0 {
 			cc = m.newContentCollection(contentCollectionUUID, relatedItems)
 		}
+	} else {
+		cc.Deleted = true
 	}
 
 	mc := m.newMappedContent(contentCollectionUUID, cc)

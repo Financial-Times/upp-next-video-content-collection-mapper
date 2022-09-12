@@ -32,7 +32,7 @@ func TestQueueConsume(t *testing.T) {
 			"application/json",
 			"1234",
 			true,
-			newStringMappedContent(t, "c4cde316-128c-11e7-80f4-13e067d5072c", "1234", lastModified),
+			newStringMappedContent(t, "c4cde316-128c-11e7-80f4-13e067d5072c", "1234", lastModified, false),
 		},
 		{
 			"next-video-input.json",
@@ -72,7 +72,7 @@ func TestQueueConsume(t *testing.T) {
 			"application/json",
 			"1234",
 			true,
-			newStringMappedContent(t, "", "1234", lastModified),
+			newStringMappedContent(t, "", "1234", lastModified, false),
 		},
 		{
 			"next-video-empty-related-input.json",
