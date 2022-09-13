@@ -70,13 +70,13 @@ func TestMapNextVideoRelatedContentHappyFlows(t *testing.T) {
 	}{
 		{
 			"next-video-input.json",
-			newStringMappedContent(t, "c4cde316-128c-11e7-80f4-13e067d5072c", "", ""),
+			newStringMappedContent(t, "c4cde316-128c-11e7-80f4-13e067d5072c", "", "", false),
 			testVideoUUID,
 			false,
 		},
 		{
 			"next-video-delete-input.json",
-			newStringMappedContent(t, "", "", ""),
+			newStringMappedContent(t, "", "", "", true),
 			testVideoUUID,
 			false,
 		},
@@ -238,7 +238,7 @@ func newRelatedItem(id interface{}) map[string]interface{} {
 	return obj
 }
 
-func newStringMappedContent(t *testing.T, itemUUID string, tid string, msgDate string) string {
+func newStringMappedContent(t *testing.T, itemUUID string, tid string, msgDate string, deletePayload bool) string {
 	var cc ContentCollection
 	if itemUUID != "" {
 		items := []Item{{itemUUID}}
@@ -249,6 +249,10 @@ func newStringMappedContent(t *testing.T, itemUUID string, tid string, msgDate s
 			LastModified:     msgDate,
 			CollectionType:   collectionType,
 		}
+	}
+	if deletePayload {
+		cc.Deleted = true
+		cc.UUID = testVideoUUID
 	}
 
 	mc := MappedContent{

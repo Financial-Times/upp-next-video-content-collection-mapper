@@ -28,7 +28,7 @@ func TestMapRequest(t *testing.T) {
 	}{
 		{
 			"next-video-input.json",
-			newStringMappedContent(t, "c4cde316-128c-11e7-80f4-13e067d5072c", "", ""),
+			newStringMappedContent(t, "c4cde316-128c-11e7-80f4-13e067d5072c", "", "", false),
 			http.StatusOK,
 		},
 		{
